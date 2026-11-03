@@ -1,0 +1,32 @@
+@import './visuals/fonts/fonts.css';
+
+:root {
+  --primary-color: #5e0006;
+  --secondary-color: #9b0f06;
+  --highlight-color: #d53e0f;
+  --accent-color: #ffe628;
+  --background-color: #fbf4f4;
+  --ink: #1a1815;
+  --cream: #faf6ec;
+
+  --track-color: #511c10;         
+  --grain: rgba(26, 24, 21, 0.07);
+  --shadow: 5px 5px 0 var(--ink); 
+  --radius-wobble: 30px 12px 28px 14px; 
+}
+
+* {
+    padding: 0;
+    margin: 0;
+
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--accent-color);
+    background-image: radial-gradient(var(--grain) 1px, transparent 1.5px);
+    background-size: 7px 7px;
+    color: var(--ink);
+    
+    width: 100%;
+}

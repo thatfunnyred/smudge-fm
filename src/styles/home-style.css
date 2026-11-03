@@ -1,0 +1,240 @@
+.home-page {
+    height: 100vh;
+    width: 100vw;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding-top: 100px;
+
+    overflow: hidden;
+    scrollbar-width: none;
+}
+
+#navigation-bar {
+    width: 100%;
+    
+    position: absolute;
+    top: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    font-family: 'main-font';
+}
+
+#drawer-btn, #title-btn, #info-btn {
+    font-size: 28px;
+    padding: 12px 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#drawer-btn {
+    transform: rotate(90deg) scaleY(1.4);
+}
+
+#music-disc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: spin 16s linear infinite;
+    animation-play-state: paused;
+}
+
+#music-disc.spinning {
+    animation-play-state: running;
+}
+
+@Keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#song-title {
+    font-family: 'main-font';
+}
+
+#artist-name {
+    font-family: 'main-font';
+}
+
+#line {
+    margin-top: 28px;
+
+    position: relative;
+
+    transform: scale(0.9);
+}
+
+#line-path {
+    width: 18%;
+    overflow: hidden;
+
+    position: absolute;
+    top: 0;
+}
+
+#current-time {
+    position: absolute;
+    
+    top: 24px;
+    left: 0px;
+
+    font-family: 'main-font';
+}
+
+#total-time {
+    position: absolute;
+    
+    top: 24px;
+    right: -2px;
+
+    font-family: 'main-font';
+}
+
+#song-controls {
+    width: 100%;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 32px;
+
+    position: relative;
+}
+
+#play-btn, #pause-btn {
+    width: 100px;
+    height: 100px;
+
+    position: absolute;
+    left: calc(50% - 50px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;    
+}
+
+#next-btn, #previous-btn, #like-btn {
+    transform: scale(1.2);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#next-btn:active, #previous-btn:active {
+    g {
+        fill-opacity: 1;
+    }
+}
+
+#mode-btn {
+    transform: scale(1.4);
+    width: 40px;
+    height: 40px;
+
+    background-color: #d53e0f;
+    margin-right: 30px;
+}
+
+#previous-btn {
+    margin-right: 70px;
+}
+
+#next-btn {
+    margin-left: 70px;
+}
+
+#like-btn {
+    transform: scale(1.4);
+
+    margin-left: 30px;
+}
+
+.liked g {
+    fill-opacity: 1;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+#track-list {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 42px;
+
+    border-radius: 30px 12px 0 0;
+    box-shadow: -1px -6px 0 var(--ink);
+    background-color: var(--cream);
+
+    position: relative;
+}
+
+#track-list-title {
+    font-family: 'main-font';
+    font-size: 24px;
+    margin-bottom: 12px;
+
+    position: absolute;
+    top: 18px;
+    left: 24px
+}
+
+#track-items {
+    width: 100%;
+    height: 200px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-top: 60px;   
+
+    gap: 8px;
+
+    overflow-y: auto;
+}
+
+.track-item {
+    width: 360px;
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 24px;
+
+    font-family: 'main-font';
+
+    border: 3px solid var(--ink);
+    border-radius: 30px 12px 28px 14px;
+    position: relative;
+}
+
+#track-item-title {
+    
+}
+
+#track-item-artist {
+    
+}
