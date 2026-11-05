@@ -1,6 +1,5 @@
 import { lazy, Suspense, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import { isSignedIn } from "../utils/firebase";
 import { subscribe } from "../utils/events";
 
 const HomePage = lazy(() => import("../pages/HomePage.tsx"));
