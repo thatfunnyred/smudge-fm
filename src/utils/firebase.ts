@@ -73,9 +73,11 @@ async function signInWithGoogle() {
 
         return true;
 
-    } catch (error) {
+    } catch (error: any) {
         
         console.log("Login failed");
+        console.log(error.code);
+        console.log(error.message);
         return false;
     }
 }
