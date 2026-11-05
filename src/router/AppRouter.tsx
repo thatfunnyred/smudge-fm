@@ -1,10 +1,17 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+import { isSignedIn } from "../utils/firebase";
+import { subscribe } from "../utils/events";
 
 const HomePage = lazy(() => import("../pages/HomePage.tsx"));
+const SignInPopUp = lazy(() => import("../components/SignIn.tsx"));
 
 export default function AppRouter() {
-//   const navigate = useNavigate();
+
+  const [signedIn, setSignedIn] = useState(false);
+
+  subscribe("onsignin", () => setSignedIn(true));
+  subscribe("onsignout", () => setSignedIn(false));
 
   return (
     <>
@@ -14,8 +21,13 @@ export default function AppRouter() {
             Loading page…
           </div>
         }
-      >
+        >
+
+        {/* check if signed in */}
+        {!signedIn ? <SignInPopUp /> : ""}
+        
         <Routes>
+
           <Route path="/" element={<HomePage />} />
 
           <Route path="*" element={<div>Not found</div>} />

@@ -2,12 +2,14 @@ import MusicDisc from "../visuals/svgs/music-disc";
 import "../styles/home-style.css";
 import Line from "../visuals/svgs/line";
 import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/controls";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function HomePage() {
 
     let isPlaying: boolean = false;
     let isLiked: boolean = false;
+    let trackListRef = useRef<HTMLDivElement>(null);
+    let trackItemsRef = useRef<HTMLDivElement>(null);
 
     const handlePlayPause = () => {
         isPlaying = !isPlaying;
@@ -56,6 +58,62 @@ export default function HomePage() {
         }, 100);
     }, []);
 
+    const isDragging = useRef(false);
+    const lastY = useRef(0);
+
+    const [bottom, setBottom] = useState(0);
+
+    const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        isDragging.current = true;
+        lastY.current = e.clientY;
+        e.preventDefault();
+    };
+
+    const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isDragging.current || 
+            !e.currentTarget.hasPointerCapture(e.pointerId) || 
+            !trackListRef.current || 
+            !trackItemsRef.current
+        ) return;
+
+        const deltaY = e.clientY - lastY.current;
+        lastY.current = e.clientY;
+
+        setBottom(prev => Math.min(Math.max(prev - deltaY, -170), 250));
+
+        trackListRef.current.style.height = `${236 + bottom}px`;
+        trackItemsRef.current.style.height = `${180 + Math.abs(bottom)}px`;
+    };
+
+    const onHandlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        isDragging.current = false;
+    };
+
+    const [currentMode, setCurrentMode] = useState(0);
+    const modes = ["disc-mode", "lyrics-mode", "cover-mode"];
+
+    const handleMode = () => {
+        setCurrentMode((currentMode + 1) % modes.length);
+        
+        for(let i = 0; i < modes.length; i++) {
+            const mode = document.getElementById(modes[i]);
+            
+            if(i == currentMode) {
+                mode?.classList.remove("hidden");
+            }else{
+                mode?.classList.add("hidden");
+            }
+        }
+    };
+
+    const TRACKS = [
+            {name: "test-song1", artist: "test-artist1", length: "1:00"}, 
+            {name: "test-song2", artist: "test-artist2", length: "2:00"}, 
+            {name: "test-song3", artist: "test-artist3", length: "3:00"}
+        ];
+
     return (
         <div className="home-page">
             <div id="navigation-bar">
@@ -70,13 +128,13 @@ export default function HomePage() {
             <h3 id="artist-name">Some Artist</h3>
 
             <Line>
-                <p id="current-time">0:17</p>
+                <p id="current-time">0:00</p>
                 <Line id="line-path" color="var(--track-color)"> </Line>
                 <p id="total-time">1:43</p>
             </Line>
 
             <div id="song-controls">
-                <Mode />
+                <Mode OnClick={handleMode} />
                 <Previous />
                 <Play OnClick={handlePlayPause} />
                 <Pause className="hidden pause-btn" OnClick={handlePlayPause} />
@@ -84,34 +142,32 @@ export default function HomePage() {
                 <Like OnClick={handleLike} />
             </div>
 
-            <div id="track-list">
+            <div id="track-list" ref={trackListRef}>
+                <div 
+                    id="track-handle" 
+                    style={{ touchAction: "none" }}
+                    onPointerDown={onHandlePointerDown}
+                    onPointerMove={onHandlePointerMove}
+                    onPointerUp={onHandlePointerUp}
+                    >
+                        <div id="handle"></div>
+                    </div>
                 <h1 id="track-list-title">UP NEXT</h1>
 
-                <div id="track-items">
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
-                    <div className="track-item">
-                        <h1 className="track-item-title">Some Song</h1>
-                        <h3 className="track-item-artist">Some Artist</h3>
-                    </div>
+                <div id="track-fade-1"></div>
+                <div id="track-fade-2"></div>
+
+                <div id="track-items" ref={trackItemsRef}>
+                    {TRACKS.map((track, index) => (
+                        <div className="track-item" key={index}>
+                            <div className="track-item-cover"></div>
+                            <div className="track-item-info-container">
+                                <h1 className="track-item-title">{track.name}</h1>
+                                <h3 className="track-item-artist">{track.artist}</h3>
+                            </div>
+                            <p className="track-item-length">{track.length}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
