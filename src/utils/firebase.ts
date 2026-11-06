@@ -211,6 +211,10 @@ async function removePlaylist(playlistKey: number) {
     await updateUserPlaylists("remove", playlist);
 }
 
+async function editPlaylistName(playlist: any) {
+    await updateUserPlaylists("edit", playlist);
+}
+
 //func to update firebase user data
 async function updateUserData() {
     // return if not signed in
@@ -264,9 +268,23 @@ async function updateUserPlaylists(process: string, playlist: any) {
             );
             break;
         case "edit":
-            // reference to user uid doc
-            // const uniquePlaylistRef = doc(collection(db, "users", user.uid, "playlists", playlist.id));
-            // await deleteDoc(uniquePlaylistRef);
+            // reference to playlist doc
+            const  uniqueEditPlaylistRef = doc(db, "users", user.uid, "playlists", playlist.id);
+            await setDoc(uniqueEditPlaylistRef, {
+                name: playlist.name
+            }, { merge: true })
+
+            playlists = playlists.filter(
+                (pl: any) => {
+                    if(pl.id == playlist.id)
+                    {
+                        pl.name = playlist.name;
+                        return pl;
+                    }else{
+                        return pl;
+                    }
+                }
+            )
             break;
         case "update":
             // reference to playlist doc
@@ -298,5 +316,6 @@ export {
     getUserLikedSongs, 
     addPlaylist, 
     removePlaylist,
+    editPlaylistName,
     updateUserData
 }

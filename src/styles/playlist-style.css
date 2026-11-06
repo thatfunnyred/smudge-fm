@@ -55,7 +55,7 @@
     font-size: 28px;
     font-family: "main-font";
 
-    padding: 12px 24px 0;
+    padding: 24px 24px 0;
 }
 
 #playlist-sub-title {
@@ -65,7 +65,6 @@
 
     padding: 0 24px;
 }
-
 
 #playlist-input-field {
     width: 100%;
@@ -77,7 +76,7 @@
 
     padding: 0px 24px;
 
-    margin-top: 24px;
+    margin-top: 18px;
 }
 
 #playlist-input-field label {
@@ -96,9 +95,52 @@
     border: 2px solid var(--ink);
 }
 
+#playlist-separator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0px 24px;
+}
+
+#playlist-separator-title {
+    font-family: "main-font";
+    font-size: 24px;
+
+    color: var(--highlight-color);
+}
+
+#playlist-separator-info {
+    font-size: 16px;
+    font-family: "main-font";
+    font-weight: 200;
+}
+
+#playlist-add-song-btn {
+    height: 50px;
+
+    font-size: 24px;
+    font-family: "main-font";
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 12px;
+    margin: 12px 24px;
+
+    border: 2px dashed var(--ink);
+}
+
+#playlist-add-song-btn:active {
+    background-color: var(--accent-color);
+    font-size: 22px;
+}
 
 #playlist-btn-container {
     width: 100%;
+
+    position: absolute;
+    bottom: 12px;
 
     display: flex;
     justify-content: space-around;
@@ -106,7 +148,7 @@
 
 #playlist-save-btn, #playlist-delete-btn {
     height: 50px;
-    width: 40%;
+    width: 40%; 
 
     padding: 12px 24px;
     margin: 12px 24px;

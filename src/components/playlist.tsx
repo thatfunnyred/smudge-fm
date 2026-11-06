@@ -1,5 +1,5 @@
 import "../styles/playlist-style.css"
-import { removePlaylist } from "../utils/firebase";
+import { editPlaylistName, removePlaylist } from "../utils/firebase";
 
 export interface PlaylistProps {
     playlistData?: any
@@ -19,6 +19,16 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
         onClose();
     };
 
+    const handlePlaylistSave = () => {
+        const playlistNameInput = document.getElementById("playlist-name-input") as HTMLInputElement;
+        const playlistNameValue = playlistNameInput.value;
+        playlistData.name = playlistNameValue;
+
+        editPlaylistName(playlistData);
+
+        onClose();
+    }
+
     return (
         <div id="background-blur">
             <div id="playlist-container">
@@ -28,12 +38,19 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
 
                 <div id="playlist-input-field">
                     <label id="playlist-name-label" htmlFor="playlist-name-input">playlist name</label>
-                    <input type="test" id="playlist-name-input" value={playlistData.name}></input>
+                    <input type="text" id="playlist-name-input" placeholder={playlistData.name}></input>
                 </div>
+
+                <div id="playlist-separator">
+                    <h1 id="playlist-separator-title">SONGS</h1>
+                    <h1 id="playlist-separator-info">{playlistData.songIds.length} total</h1>
+                </div>
+
+                <div id="playlist-add-song-btn"> + add songs </div>
 
                 <div id="playlist-btn-container">
                     <button id="playlist-delete-btn" onClick={handlePlaylistDelete}>DELETE</button>
-                    <button id="playlist-save-btn">SAVE</button>
+                    <button id="playlist-save-btn" onClick={handlePlaylistSave}>SAVE</button>
                 </div>
             </div>
         </div>
