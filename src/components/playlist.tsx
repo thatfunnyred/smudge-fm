@@ -22,9 +22,14 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
     return (
         <div id="background-blur">
             <div id="playlist-container">
-                <h1 id="playlist-title">{playlistData.name}</h1>
-                <h1 id="playlist-info">{playlistData.songs + "·" + playlistData.time}</h1>
+                <h1 id="playlist-title">EDIT PLAYLIST</h1>
+                <h1 id="playlist-sub-title">{playlistData.songIds.length + " songs ·"}</h1>
                 <button id="playlist-close-btn" onClick={onClose}>X</button>
+
+                <div id="playlist-input-field">
+                    <label id="playlist-name-label" htmlFor="playlist-name-input">playlist name</label>
+                    <input type="test" id="playlist-name-input" value={playlistData.name}></input>
+                </div>
 
                 <div id="playlist-btn-container">
                     <button id="playlist-delete-btn" onClick={handlePlaylistDelete}>DELETE</button>
