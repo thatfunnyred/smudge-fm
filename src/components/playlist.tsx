@@ -22,9 +22,12 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
     const handlePlaylistSave = () => {
         const playlistNameInput = document.getElementById("playlist-name-input") as HTMLInputElement;
         const playlistNameValue = playlistNameInput.value;
-        playlistData.name = playlistNameValue;
-
-        editPlaylistName(playlistData);
+        
+        if(playlistNameValue != "") {
+            playlistData.name = playlistNameValue;
+            
+            editPlaylistName(playlistData);
+        }
 
         onClose();
     }
