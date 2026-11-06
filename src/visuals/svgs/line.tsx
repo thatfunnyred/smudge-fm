@@ -1,4 +1,4 @@
-export interface LineProps{
+export interface LineProps {
     id?: string;
     className?: string;
     color?: string;

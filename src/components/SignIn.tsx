@@ -7,6 +7,8 @@ export default function SignInPopUp() {
     const [currentWindow, setCurrentWindow] = useState("signup");
 
     const changeCurrentWindow = (window: string) => {
+        if(window == currentWindow) return;
+        
         setCurrentWindow(window);
 
         const signUpBtn = document.getElementById("signup-btn");

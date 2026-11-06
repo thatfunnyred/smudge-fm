@@ -1,0 +1,111 @@
+#background-blur {
+    width: 100vw;
+    height: 100dvh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    top: 0;
+
+    background-color: #5454541a;
+    backdrop-filter: blur(4px);
+
+    z-index: 99999;
+}
+
+#add-playlist-container {
+    height: 232px;
+    width: 350px;
+
+    display: flex;
+    flex-direction: column;
+
+    filter: url(#crayon);
+    background-color: var(--background-color);
+
+    border-radius: 28px 12px 28px 12px;
+    border: 4px solid var(--ink);
+    box-shadow: 8px 8px 0px var(--ink);
+
+    z-index: 99999;
+}
+
+#add-playlist-title {
+    font-size: 28px;
+
+    padding: 12px 24px 0;
+}
+
+#add-playlist-sub-title {
+    font-size: 14px;
+
+    padding: 0 24px;
+}
+
+#add-playlist-close-btn {
+    height: 40px;
+    width: 40px;
+
+    font-size: 28px;
+    font-weight: 600;
+    margin: 12px;
+
+    position: absolute;
+    right: 0;
+
+    background: none;
+    border: none;
+}
+
+#add-playlist-close-btn:active {
+    background-color: var(--accent-color);
+}
+
+
+#add-playlist-name-label {
+    font-family: "main-font";
+
+    margin: 8px 24px;
+}
+
+#add-playlist-name-input  {
+    height: 50px;
+    
+    font-family: "main-font";
+
+    padding: 0 12px;
+    margin: 0 24px;
+    
+    border-radius: 14px 4px 14px 4px;
+    border: 2px solid var(--ink);
+}
+
+#add-playlist-save-btn {
+    height: 50px;
+
+    padding: 12px 24px;
+    margin: 12px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-family: "main-font";
+    font-weight: 800;
+    font-size: 24px;
+    
+    border-radius: 14px 4px 14px 4px;
+    border: 3px solid var(--ink);
+    box-shadow: 2px 2px 0px var(--ink);
+    background-color: var(--accent-color);
+
+    transition: all 0.1s ease;
+}
+
+
+#add-playlist-save-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--ink);
+}

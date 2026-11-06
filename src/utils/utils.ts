@@ -29,4 +29,8 @@ function fetchAudioFromLocalStorage(storageKey: string) {
   return base64Audio;
 }
 
-export {saveAudioToLocalStorage, fetchAudioFromLocalStorage}
+function lerp(a: number, b: number, i: number) {
+  return a + (b - a) * i;
+}
+
+export {saveAudioToLocalStorage, fetchAudioFromLocalStorage, lerp}

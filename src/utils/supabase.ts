@@ -12,4 +12,4 @@ function supabaseInitialize() {
     if(supabase) return;
 }
 
-export {supabaseInitialize}
+export {supabaseInitialize} 

@@ -1,12 +1,34 @@
-export function publish(eventName: string, data: any) {
-  const event = new CustomEvent(eventName, { detail: data });
-  document.dispatchEvent(event);
+// @events to store all callback
+const events: Record<string, Set<Function>> = {};
+
+// func to subscribe to a specified event, returns callback to delete the event
+function subscribe(event: string, callback: Function) {
+    
+    // create new event id if not stored
+    if (!events[event]) {
+        events[event] = new Set();
+    }
+    
+    // add callback to the stored event id
+    events[event].add(callback);
+
+    // return callback to delete the event
+    return () => {
+        events[event].delete(callback);
+    };
 }
 
-export function subscribe(eventName: string, listener: any) {
-  document.addEventListener(eventName, listener);
+// func to notify all subscribed to an event
+function publish(event: string, data: any) {
+
+    // create new event id if not stored
+    if (!events[event]) {
+        events[event] = new Set();
+    }
+
+    // call all callbacks
+    events[event]?.forEach(callback => callback(data));
 }
 
-export function unsubscribe(eventName: string, listener: any) {
-  document.removeEventListener(eventName, listener);
-}
+// export all funcs
+export { subscribe, publish };

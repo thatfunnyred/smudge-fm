@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { subscribe } from "../utils/events";
 
@@ -9,8 +9,16 @@ export default function AppRouter() {
 
   const [signedIn, setSignedIn] = useState(false);
 
-  subscribe("onsignin", () => setSignedIn(true));
-  subscribe("onsignout", () => setSignedIn(false));
+  useEffect(() => {
+    const signInUnsubscribe = subscribe("onsignin", () => setSignedIn(true));
+    const signOutUnsubscribe = subscribe("onsignout", () => setSignedIn(false));
+
+    return () => {
+      signInUnsubscribe();
+      signOutUnsubscribe();
+    }
+  }, [])
+  
 
   return (
     <>
@@ -23,7 +31,7 @@ export default function AppRouter() {
         >
 
         {/* check if signed in */}
-        {!signedIn ? <SignInPopUp /> : ""}
+        {!signedIn && <SignInPopUp />}
         
         <Routes>
 

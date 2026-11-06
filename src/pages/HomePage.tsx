@@ -2,23 +2,30 @@ import MusicDisc from "../visuals/svgs/music-disc";
 import "../styles/home-style.css";
 import Line from "../visuals/svgs/line";
 import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/controls";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { getUserPlaylists } from "../utils/firebase";
+import { subscribe } from "../utils/events";
+import AddPlaylistPopUp from "../components/addplaylist";
+
+const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
 export default function HomePage() {
 
-    let isPlaying: boolean = false;
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
     let isLiked: boolean = false;
     let trackListRef = useRef<HTMLDivElement>(null);
     let trackItemsRef = useRef<HTMLDivElement>(null);
 
     const handlePlayPause = () => {
-        isPlaying = !isPlaying;
+        const newPlaying = !isPlaying;
+        setIsPlaying(newPlaying);
+
         const playBtn = document.getElementById("play-btn");
         const pauseBtn = document.getElementById("pause-btn");
 
         const musicDisc = document.getElementById("music-disc");
 
-        if (isPlaying) {
+        if (newPlaying) {
             playBtn?.classList.add("hidden");
             pauseBtn?.classList.remove("hidden");
 
@@ -38,25 +45,31 @@ export default function HomePage() {
         likeBtn?.classList.toggle("liked");
     };
 
+    const dt = useRef(0);
+
     useEffect(() => {
-        let dt: number = 0;
+        const interval = setInterval(() => {
+            if (!isPlaying) return;
 
-        setInterval(() => {
-            if (isPlaying) {
-                dt += 0.1;
-                const currentTime = document.getElementById("current-time");
-                const linePath = document.getElementById("line-path");
+            dt.current += 0.1;
 
-                if (currentTime) {
-                    const minutes = Math.floor(dt / 60);
-                    const seconds = Math.floor(dt % 60);
-                    currentTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            const currentTime = document.getElementById("current-time");
+            const linePath = document.getElementById("line-path");
 
-                    linePath?.setAttribute("style", `width: ${dt / 103 * 100}%`);
-                }
+            if (currentTime && linePath) {
+                const minutes = Math.floor(dt.current / 60);
+                const seconds = Math.floor(dt.current % 60);
+
+                currentTime.textContent =
+                    `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+
+                linePath.style.width =
+                    `${(dt.current / 103) * 100}%`;
             }
         }, 100);
-    }, []);
+
+        return () => clearInterval(interval);
+    }, [isPlaying]);
 
     const isDragging = useRef(false);
     const lastY = useRef(0);
@@ -82,6 +95,7 @@ export default function HomePage() {
 
         setBottom(prev => Math.min(Math.max(prev - deltaY, -170), 250));
 
+        trackListRef.current.style.transition = `none`;
         trackListRef.current.style.height = `${236 + bottom}px`;
         trackItemsRef.current.style.height = `${180 + Math.abs(bottom)}px`;
     };
@@ -108,16 +122,95 @@ export default function HomePage() {
         }
     };
 
+    const handlePullTracks = () => {
+        if (!trackListRef.current || !trackItemsRef.current) return;
+
+        trackListRef.current.style.transition = `all 0.5s ease`;
+        
+        let newBottom: number = bottom < 150 ? 250 : -170;
+        setBottom(newBottom);
+
+        trackListRef.current.style.height = `${236 + newBottom}px`;
+        trackItemsRef.current.style.height = `${180 + Math.abs(newBottom)}px`;
+    }
+
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
+    const handleTopDrawer = () => {
+        setDrawerOpen(!drawerOpen);
+    }
+
     const TRACKS = [
             {name: "test-song1", artist: "test-artist1", length: "1:00"}, 
             {name: "test-song2", artist: "test-artist2", length: "2:00"}, 
             {name: "test-song3", artist: "test-artist3", length: "3:00"}
         ];
+    
+    const [PLAYLISTS, SETPLAYLISTS] = useState<any[]>([]);
+    
+    useEffect(() => {
+        const assignPlaylists = (playlists: any[]) => {
+            SETPLAYLISTS([...playlists]);
+        };
+
+        const unsubscribe = subscribe(
+            "onplaylistupdate",
+            assignPlaylists
+        );
+
+        return () => unsubscribe();
+    }, []);
+
+    const [playlistData, setPlaylistData] = useState<object | null>(null);
+    const [playlistKey, setPlaylistKey] = useState<number>(0);
+
+    const [addingPlaylist, setAddingPlaylist] = useState<boolean>(false);
+    
+    const handlePlaylistPopUp = (data: object | null, key: number) => {
+        setPlaylistKey(key);
+        setPlaylistData(data);
+    };
 
     return (
         <div className="home-page">
+            
+            {playlistData !== null && (
+                <Suspense fallback={null}>
+                    <PlaylistPopUp playlistData={playlistData} playlistKey={playlistKey} onClose={() => handlePlaylistPopUp(null, 0)} />
+                </Suspense>
+            )}
+            
+            {addingPlaylist && (
+                <Suspense fallback={null}>
+                    <AddPlaylistPopUp onClose={() => setAddingPlaylist(false)} />
+                </Suspense>
+            )}
+
             <div id="navigation-bar">
-                <h1 id="drawer-btn">{">"}</h1>
+                <div id="top-drawer" style={{top: `${drawerOpen ?  "-4px" : "-254px"}`}}>
+                    <div id="top-drawer-title-container">
+                        <h1 id="top-drawer-title">Your playlists</h1>
+                        <h1 id="top-drawer-count">{PLAYLISTS.length} playlists</h1>
+                    </div>
+                    
+                    <div id="playlist-items">
+                        {PLAYLISTS && PLAYLISTS.map((playlist: any, index: any) => (
+                            <div className="playlist-item" key={index}>
+                                <div className="playlist-right-container">
+                                    <div className="playlist-item-icon"></div>
+                                    <div className="playlist-info-container">
+                                        <h1 className="playlist-item-name">{playlist.name}</h1>
+                                        <h1 className="playlist-item-info">{playlist.songIds.length} {"songs "}</h1>
+                                    </div>
+                                </div>
+                                <div className="playlist-edit-btn" onClick={() => handlePlaylistPopUp(playlist, index)}>···</div>
+                            </div>
+                        ))}
+                        <div id="playlist-add-btn" onClick={() => setAddingPlaylist(true)}>+ Add Playlist</div>
+                    </div>
+                </div>
+
+                <h1 id="drawer-btn" onClick={handleTopDrawer} style={{top: `${drawerOpen ? "250px" : "0px"}`}}>{drawerOpen ? "<" : ">"}</h1>
                 <h1 id="title-btn">Smudge FM</h1>
                 <h1 id="info-btn">...</h1>
             </div>
@@ -153,6 +246,7 @@ export default function HomePage() {
                         <div id="handle"></div>
                     </div>
                 <h1 id="track-list-title">UP NEXT</h1>
+                <div id="pull-tracks-btn" onClick={handlePullTracks} style={{rotate: `${bottom > 150 ? 90 : -90}deg`}}>{">"}</div>
 
                 <div id="track-fade-1"></div>
                 <div id="track-fade-2"></div>

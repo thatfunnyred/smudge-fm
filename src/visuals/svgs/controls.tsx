@@ -110,7 +110,7 @@ function Mode({ id = "mode-btn", className = "mode-btn", OnClick }: ControlsProp
                 <feDisplacementMap in="SourceGraphic" in2="n" scale="1"/>
                 </filter>
             </defs>
-            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4h16v12h-9l-4 4v-4H4z"/>
                 <path d="M8 8.5h8M8 12h5"/>
             </g>
@@ -122,7 +122,7 @@ function Mode({ id = "mode-btn", className = "mode-btn", OnClick }: ControlsProp
                 <feDisplacementMap in="SourceGraphic" in2="n" scale="1"/>
                 </filter>
             </defs>
-            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3.5" y="3.5" width="17" height="17" rx="3"/>
                 <circle cx="9" cy="9" r="1.8"/>
                 <path d="M3.5 16.5l5.5-4.5 4 3.2 3-2.2 4.5 3.5"/>
@@ -135,7 +135,7 @@ function Mode({ id = "mode-btn", className = "mode-btn", OnClick }: ControlsProp
                 <feDisplacementMap in="SourceGraphic" in2="n" scale="1"/>
                 </filter>
             </defs>
-            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <g filter="url(#crayon-icon)" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="9"/>
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M6 9a7 7 0 0 1 3.5-3.5"/>
