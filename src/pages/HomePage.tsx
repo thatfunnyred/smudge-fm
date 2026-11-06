@@ -3,7 +3,6 @@ import "../styles/home-style.css";
 import Line from "../visuals/svgs/line";
 import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/controls";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { getUserPlaylists } from "../utils/firebase";
 import { subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
 

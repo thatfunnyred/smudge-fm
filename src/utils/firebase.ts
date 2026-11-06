@@ -1,5 +1,5 @@
 import { onAuthStateChanged, setPersistence, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, deleteDoc, getDocs } from "firebase/firestore";
+import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getDocs } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { publish } from "./events";
