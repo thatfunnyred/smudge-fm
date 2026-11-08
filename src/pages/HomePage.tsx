@@ -5,7 +5,7 @@ import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/control
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
-import { getUserPlaylists, getUserSavedSongs } from "../utils/firebase";
+import { getUserSavedSongs } from "../utils/firebase";
 import { formatDuration } from "../utils/utils";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
