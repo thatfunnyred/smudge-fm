@@ -33,4 +33,17 @@ function lerp(a: number, b: number, i: number) {
   return a + (b - a) * i;
 }
 
-export {saveAudioToLocalStorage, fetchAudioFromLocalStorage, lerp}
+function removeExtension(filename: string) {
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex === -1) return filename;
+  return filename.substring(0, lastDotIndex);
+}
+
+function formatDuration(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+}
+
+export {saveAudioToLocalStorage, fetchAudioFromLocalStorage, removeExtension, formatDuration, lerp}

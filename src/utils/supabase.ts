@@ -12,4 +12,46 @@ function supabaseInitialize() {
     if(supabase) return;
 }
 
-export {supabaseInitialize} 
+async function uploadSong(filePath: string, file: File) {
+    try {
+        const { data, error } = await supabase.storage
+            .from("user-saved-songs")
+            .upload(filePath, file);
+
+        if (error) {
+            console.error("Error uploading file:", error);
+            return { data: null, error };
+        }
+
+        return { data, error: null };
+
+    } catch (error) {
+        console.error("Upload failed:", error);
+        return { data: null, error };
+    }
+}
+
+async function deleteSong(filePath: string) {
+    try {
+        console.log("Deleting:", filePath);
+
+        const { data, error } = await supabase.storage
+            .from("user-saved-songs")
+            .remove([filePath]);
+
+        if (error) {
+            console.error("Supabase deletion error:", error.message);
+            return { data: null, error };
+        }
+
+        console.log("Supabase deletion response:", data);
+
+        return { data, error: null };
+
+    } catch (error) {
+        console.error("Delete failed:", error);
+        return { data: null, error };
+    }
+}
+
+export {supabaseInitialize, uploadSong, deleteSong} 

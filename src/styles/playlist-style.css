@@ -16,7 +16,7 @@
 }
 
 #playlist-container {
-    height: 512px;
+    height: 612px;
     width: 350px;
 
     display: flex;
@@ -116,7 +116,7 @@
     font-weight: 200;
 }
 
-#playlist-add-song-btn {
+.playlist-add-song-btn {
     height: 50px;
 
     font-size: 24px;
@@ -131,9 +131,84 @@
     border: 2px dashed var(--ink);
 }
 
-#playlist-add-song-btn:active {
+.playlist-add-song-btn:active {
     background-color: var(--accent-color);
     font-size: 22px;
+}
+
+.playlist-add-song-btn input[type="file"] {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+}
+
+#playlist-add-song-file-display {
+  font-family: "main-font";
+  color: #666;
+  font-size: 14px;
+
+  margin: 0 24px;
+}
+
+#playlist-songs-container {
+    height: 180px;
+
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+
+    overflow-y: auto;
+    margin-top: 12px;
+}
+
+.playlist-song-item {
+    height: 50px;
+
+    margin: 0 24px;
+    padding: 0 8px;
+
+    display: flex;
+    align-items: center;
+
+    border: 2px solid var(--ink);
+}
+
+
+.playlist-song-info-container {
+    height: 50px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    padding: 6px 0;
+
+    flex: 1;
+}
+
+.playlist-song-title {
+    font-size: 20px;
+}
+
+.playlist-song-length {
+    font-size: 12px;
+    font-weight: 200;
+
+    color: var(--secondary-color);
+}
+
+.playlist-delete-song {
+    font-size: 32px;
+    height: 0px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.playlist-delete-song:active {
+    transform: scale(0.8);
 }
 
 #playlist-btn-container {

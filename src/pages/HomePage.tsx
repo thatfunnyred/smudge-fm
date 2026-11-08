@@ -5,6 +5,8 @@ import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/control
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
+import { getUserPlaylists, getUserSavedSongs } from "../utils/firebase";
+import { formatDuration } from "../utils/utils";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
@@ -138,12 +140,6 @@ export default function HomePage() {
     const handleTopDrawer = () => {
         setDrawerOpen(!drawerOpen);
     }
-
-    const TRACKS = [
-            {name: "test-song1", artist: "test-artist1", length: "1:00"}, 
-            {name: "test-song2", artist: "test-artist2", length: "2:00"}, 
-            {name: "test-song3", artist: "test-artist3", length: "3:00"}
-        ];
     
     const [PLAYLISTS, SETPLAYLISTS] = useState<any[]>([]);
     
@@ -170,6 +166,34 @@ export default function HomePage() {
         setPlaylistData(data);
     };
 
+    const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
+
+    const handlePlaylistSelect = (playlist: any) => {
+        const previousSelectedPlaylist = selectedPlaylist; 
+        
+        if(previousSelectedPlaylist)
+        {
+            if(playlist.id == previousSelectedPlaylist.id) return;
+    
+            const previousSelectedElement = document.getElementById(previousSelectedPlaylist.id);
+            previousSelectedElement?.classList.toggle("selected-playlist");
+        }
+
+        setSelectedPlaylist(playlist);
+        const selectedElement = document.getElementById(playlist.id);
+        selectedElement?.classList.toggle("selected-playlist");
+
+        localStorage.setItem("selected-playlist", playlist.id);
+    }
+
+    useEffect(() => {
+        const locallySelectedPlaylist = localStorage.getItem("selected-playlist");
+
+        const playlist: any = PLAYLISTS.find((pl: any) => locallySelectedPlaylist === pl.id);
+
+        setSelectedPlaylist(playlist);
+    }, [PLAYLISTS]);
+
     return (
         <div className="home-page">
             
@@ -194,7 +218,7 @@ export default function HomePage() {
                     
                     <div id="playlist-items">
                         {PLAYLISTS && PLAYLISTS.map((playlist: any, index: any) => (
-                            <div className="playlist-item" key={index}>
+                            <div className={`playlist-item ${selectedPlaylist && selectedPlaylist.id == playlist.id ? "selected-playlist" : ""}`} id={playlist.id} key={index} onClick={() => handlePlaylistSelect(playlist)}>
                                 <div className="playlist-right-container">
                                     <div className="playlist-item-icon"></div>
                                     <div className="playlist-info-container">
@@ -251,16 +275,27 @@ export default function HomePage() {
                 <div id="track-fade-2"></div>
 
                 <div id="track-items" ref={trackItemsRef}>
-                    {TRACKS.map((track, index) => (
-                        <div className="track-item" key={index}>
-                            <div className="track-item-cover"></div>
-                            <div className="track-item-info-container">
-                                <h1 className="track-item-title">{track.name}</h1>
-                                <h3 className="track-item-artist">{track.artist}</h3>
+                    {selectedPlaylist && selectedPlaylist.songIds.map((songId: string) => {
+                        const savedSongs = getUserSavedSongs();
+                        const track: any = savedSongs.find((song: any) => song.id === songId);
+
+                        if (!track) return null;
+
+                        return (
+                            <div className="track-item" key={songId}>
+                                <div className="track-item-cover"></div>
+
+                                <div className="track-item-info-container">
+                                    <h1 className="track-item-title">{track.name.length > 20
+                                        ? track.name.slice(0, 20) + "..."
+                                        : track.name}</h1>
+                                    <h3 className="track-item-artist">{track.artist || "Unknown Artist"}</h3>
+                                </div>
+
+                                <p className="track-item-length">{formatDuration(track.duration)}</p>
                             </div>
-                            <p className="track-item-length">{track.length}</p>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

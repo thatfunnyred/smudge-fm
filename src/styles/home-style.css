@@ -75,6 +75,10 @@ body:has(#drawer-btn:active) #top-drawer {
     border: 3px solid var(--ink);
 }
 
+.selected-playlist {
+    border: 3px solid var(--highlight-color);
+}
+
 .playlist-right-container {
     display: flex;
 }
