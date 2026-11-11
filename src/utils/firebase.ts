@@ -3,7 +3,7 @@ import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getD
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { publish } from "./events";
-import { deleteSong, getSongPublicURL, uploadSong } from "./supabase";
+import { deleteSong, fileExists, getSongPublicURL, uploadSong } from "./supabase";
 import { AudioExistsInLocalStorage, deleteAudioFromLocalStorage, saveAudioToLocalStorage } from "./utils";
 import { loader } from "../components/MusicLoader";
 
@@ -79,9 +79,13 @@ function init() {
 
             loader.hide();
 
-            playlists = JSON.parse(localStorage.getItem("playlists") ?? "");
-            savedSongs = JSON.parse(localStorage.getItem("savedSongs") ?? "");
-            likedSongs = JSON.parse(localStorage.getItem("likedSongs") ?? "");
+            playlists = JSON.parse(localStorage.getItem("playlists") ?? "[]");
+            savedSongs = JSON.parse(localStorage.getItem("savedSongs") ?? "[]");
+            likedSongs = JSON.parse(localStorage.getItem("likedSongs") ?? "[]");
+
+            // console.log(playlists);
+            // console.log(savedSongs)
+            // console.log(likedSongs)
 
             // update all stored variables
             updateUserData();
@@ -396,6 +400,15 @@ async function updateUserPlaylists(process: string, playlist: any) {
                 id: doc.id,
                 ...doc.data()
             }));
+
+            playlists.forEach((p: any) => {
+                p.songIds.forEach((s: string) => {
+                    const song: any = savedSongs.find((savedSong: any) => savedSong.id == s);
+                    if(!song) {
+                        removeSongFromPlaylist(p, {id: s});
+                    }
+                });               
+            });
             break;
     }
 
@@ -412,12 +425,15 @@ async function updateUserSongs(process: string, song: any) {
 
     switch (process) {
         case "remove":
-            // delete song from supabase
-            const deletionResult = await deleteSong(song.storagePath);
+            if(!(await fileExists(song.storagePath))) {
 
-            if (!deletionResult || deletionResult.error) {
-                console.error("Song delete failed:", deletionResult?.error);
-                return null;
+                // delete song from supabase
+                const deletionResult = await deleteSong(song.storagePath);
+
+                if (!deletionResult || deletionResult.error) {
+                    console.error("Song delete failed:", deletionResult?.error);
+                    return null;
+                }
             }
 
             // reference to unique song doc
@@ -443,10 +459,14 @@ async function updateUserSongs(process: string, song: any) {
             }));
 
             savedSongs.forEach(async (s: any) => {
-                if(await AudioExistsInLocalStorage(s.id)) return;
+                if(!(await fileExists(s.storagePath))) {
+                    updateUserSongs("remove", s);
+                }else{
+                    if(await AudioExistsInLocalStorage(s.id)) return;
 
-                const PUBLIC_SONG_URL: any = getSongPublicURL(s.storagePath);
-                saveAudioToLocalStorage(PUBLIC_SONG_URL, s.id);
+                    const PUBLIC_SONG_URL: any = getSongPublicURL(s.storagePath);
+                    saveAudioToLocalStorage(PUBLIC_SONG_URL, s.id);
+                }                
             });
             break;
         case "add":

@@ -239,12 +239,6 @@ const NOTES = [
   { x: 300, y: 60, fill: "var(--ml-c2)", flag: true },
 ];
 
-const FLOATERS = [
-  { x: "-36px", delay: "0s", fill: "var(--ml-c1)", flag: false },
-  { x: "6px", delay: ".8s", fill: "var(--ml-accent)", flag: true },
-  { x: "42px", delay: "1.6s", fill: "var(--ml-c2)", flag: false },
-];
-
 const CSS = `
 .ml-overlay{
   --ml-ink:#1a1815;--ml-c1:#d53e0f;--ml-c2:#9b0f06;--ml-c3:#5e0006;

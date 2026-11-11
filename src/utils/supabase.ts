@@ -55,4 +55,9 @@ function getSongPublicURL(filePath: string): string {
     return data.publicUrl;
 }
 
-export {supabaseInitialize, uploadSong, deleteSong, getSongPublicURL} 
+async function fileExists(filePath: string) {
+    const { data } = await supabase.storage.from('user-saved-songs').exists(filePath);
+    return data;
+}
+
+export {supabaseInitialize, uploadSong, deleteSong, getSongPublicURL, fileExists} 

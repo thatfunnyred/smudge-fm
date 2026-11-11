@@ -8,7 +8,7 @@ import AddPlaylistPopUp from "../components/addplaylist";
 import { addLikedSong, getUserLikedSongs, getUserSavedSongs, logout, removeLikedSong } from "../utils/firebase";
 import { fetchAudioFromLocalStorage, formatDuration } from "../utils/utils";
 import ConfirmMenuPopUp from "../components/confirmmenu";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
