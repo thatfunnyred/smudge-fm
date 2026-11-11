@@ -402,9 +402,8 @@ async function updateUserPlaylists(process: string, playlist: any) {
             }));
 
             playlists.forEach((p: any) => {
-                p.songIds.forEach((s: string) => {
-                    const song: any = savedSongs.find((savedSong: any) => savedSong.id == s);
-                    if(!song) {
+                p.songIds.forEach(async (s: string) => {
+                    if(!(await fileExists(`${user.uid}/${s}.mp3`))) {
                         removeSongFromPlaylist(p, {id: s});
                     }
                 });               
