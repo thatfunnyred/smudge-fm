@@ -1,6 +1,8 @@
+import { Suspense, useState } from "react";
 import "../styles/playlist-style.css"
 import { addSongToPlaylist, editPlaylistName, getUserSavedSongs, removePlaylist, removeSongFromPlaylist } from "../utils/firebase";
 import { formatDuration, removeExtension } from "../utils/utils";
+import ConfirmMenuPopUp from "./confirmmenu";
 
 export interface PlaylistProps {
     playlistData?: any
@@ -9,15 +11,22 @@ export interface PlaylistProps {
 }
 
 export default function PlaylistPopUp({playlistData, playlistKey, onClose} : PlaylistProps) {
+    const [confirmMenu, setConfirmMenu] = useState<any>();
+
     if(!playlistData || playlistKey == null) {
         onClose();
         return;
     }
 
     const handlePlaylistDelete = () => {
-        removePlaylist(playlistKey);
-
-        onClose();
+        setConfirmMenu({
+            title: `DELETE '${playlistData.name}'?`,
+            context: "This deletes it from your library. It won’t be saved anywhere, and this can’t be undone.",
+            onConfirm: () => {
+                removePlaylist(playlistKey);
+                onClose();
+            }
+        })
     };
 
     const handlePlaylistSave = () => {
@@ -58,12 +67,23 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
         }
     }
 
-    const handleSongDelete= (song: string) => {
-        removeSongFromPlaylist(playlistData, song);
+    const handleSongDelete= (song: any) => {
+        setConfirmMenu({
+            title: `DELETE '${song.name}'?`,
+            context: "This deletes it from your library. It won’t be saved anywhere, and this can’t be undone.",
+            onConfirm: () => removeSongFromPlaylist(playlistData, song)
+        });
     }
 
     return (
         <div id="background-blur">
+
+            {confirmMenu && (
+                <Suspense fallback={null}>
+                    <ConfirmMenuPopUp deleteTitle={confirmMenu.title} deleteContext={confirmMenu.context} onConfirm={confirmMenu.onConfirm} onClose={() => setConfirmMenu(null)} />
+                </Suspense>
+            )}
+
             <div id="playlist-container">
                 <h1 id="playlist-title">EDIT PLAYLIST</h1>
                 <h1 id="playlist-sub-title">{playlistData.songIds.length + " songs ·"}</h1>

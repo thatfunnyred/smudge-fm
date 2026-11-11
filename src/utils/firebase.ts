@@ -1,5 +1,5 @@
 import { onAuthStateChanged, setPersistence, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getDocs } from "firebase/firestore";
+import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getDocs, getDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { publish } from "./events";
@@ -29,7 +29,7 @@ let initialized: boolean = false;
 let playlists: any = [];
 let userData: any = [];
 let savedSongs: object[] = [];
-let likedSongs: object[] = [];
+let likedSongs: any = [];
 
 // func to initialize firebase
 async function firebaseInitialize() {
@@ -78,6 +78,7 @@ function init() {
             updateUserData();
             updateUserPlaylists("update", null);
             updateUserSongs("update", null);
+            updateUserLikedSongs("update", null)
         });
     });
 }
@@ -182,8 +183,8 @@ async function saveDefaultUserData() {
     // await setDoc(savedSongsRef, {});
     
     // // reference to liked songs doc
-    // const likedSongsRef = doc(collection(db, "users", user.uid, "likedSongs"));
-    // await setDoc(likedSongsRef, {});
+    const likedSongsRef = doc(collection(db, "users", user.uid, "likedSongs"));
+    await setDoc(likedSongsRef, {});
 }
 
 // func retrieve user data from local storage
@@ -238,6 +239,14 @@ async function removeSongFromPlaylist(playlist: any, song: any) {
     await updateUserPlaylists("remove-song", data);
 }
 
+async function addLikedSong(data: any) {
+    await updateUserLikedSongs("add", data);
+}
+
+async function removeLikedSong(data: any) {
+    await updateUserLikedSongs("remove", data);
+}
+
 //func to update firebase user data
 async function updateUserData() {
     // return if not signed in
@@ -285,6 +294,11 @@ async function updateUserPlaylists(process: string, playlist: any) {
             // reference to playlist doc
             const uniquePlaylistRef = doc(db, "users", user.uid, "playlists", playlist.id);
             await deleteDoc(uniquePlaylistRef);
+
+            playlist.songIds.forEach((songId: string) => {
+                const song = savedSongs.find((song: any) => song.id == songId);
+                updateUserSongs("remove", song);
+            });
 
             // update local playlists
             playlists = playlists.filter(
@@ -459,6 +473,56 @@ async function updateUserSongs(process: string, song: any) {
     return true;
 }
 
+//func to update firebase liked song data
+
+async function updateUserLikedSongs(process: string, song?: any) {
+    // Return if not signed in
+    if (!isSignedIn()) return null;
+
+    const likedSongRef = doc(db, "users", user.uid, "likedSongs", "songs");
+
+    switch (process) {
+        case "remove": {
+            likedSongs = likedSongs.filter(
+                (ls: any) => ls.id !== song
+            );
+
+            await setDoc(likedSongRef, {
+                songs: likedSongs
+            });
+            break;
+        }
+
+        case "update": {
+            const snapshot = await getDoc(likedSongRef);
+
+            if (snapshot.exists()) {
+                likedSongs = snapshot.data().songs ?? [];
+            } else {
+                likedSongs = [];
+            }
+
+            break;
+        }
+
+        case "add": {
+            if (!likedSongs.some(
+                (ls: any) => ls.id === song
+            )) {
+                likedSongs.push(song);
+            }
+
+            await setDoc(likedSongRef, {
+                songs: likedSongs
+            });
+            break;
+        }
+    }
+
+    return true;
+}
+
+
 // export all funcs
 export {
     firebaseInitialize, 
@@ -475,6 +539,8 @@ export {
     addSongToPlaylist,
     editPlaylistName,
     removeSongFromPlaylist,
+    addLikedSong,
+    removeLikedSong,
     updateUserSongs,
     updateUserData
 }

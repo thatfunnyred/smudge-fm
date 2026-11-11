@@ -5,7 +5,7 @@ import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/control
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { publish, subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
-import { getUserSavedSongs } from "../utils/firebase";
+import { addLikedSong, getUserLikedSongs, getUserSavedSongs, removeLikedSong } from "../utils/firebase";
 import { fetchAudioFromLocalStorage, formatDuration } from "../utils/utils";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
@@ -13,7 +13,6 @@ const PlaylistPopUp = lazy(() => import("../components/playlist"));
 export default function HomePage() {
 
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
-    let isLiked: boolean = false;
     let trackListRef = useRef<HTMLDivElement>(null);
     let trackItemsRef = useRef<HTMLDivElement>(null);
 
@@ -102,8 +101,14 @@ export default function HomePage() {
     }
 
     const handleLike = () => {
-        isLiked = !isLiked;
+        const isLiked = getUserLikedSongs().includes(currentTrack.id);
         const likeBtn = document.getElementById("like-btn");
+
+        if(isLiked) {
+            removeLikedSong(currentTrack.id);
+        }else{
+            addLikedSong(currentTrack.id);
+        }
 
         likeBtn?.classList.toggle("liked");
     };
@@ -293,9 +298,17 @@ export default function HomePage() {
 
         const songTitle = document.getElementById("song-title");
         const songDuration = document.getElementById("total-time");
+        const likeBtn = document.getElementById("like-btn");
 
         if(songTitle) songTitle.textContent = currentTrack.name.length > 20 ? currentTrack.name.slice(0, 20) + "..." : currentTrack.name;
         if(songDuration) songDuration.textContent = formatDuration(currentTrack.duration);
+
+        const liked = getUserLikedSongs().includes(currentTrack.id);
+        if(liked) {
+            likeBtn?.classList.add("liked");
+        }else{
+            likeBtn?.classList.remove("liked");
+        }
     }, [currentTrack]);
 
     const handlePlaybackChange = (e: any) => {
