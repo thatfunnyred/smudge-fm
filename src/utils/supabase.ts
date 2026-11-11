@@ -33,8 +33,6 @@ async function uploadSong(filePath: string, file: File) {
 
 async function deleteSong(filePath: string) {
     try {
-        console.log("Deleting:", filePath);
-
         const { data, error } = await supabase.storage
             .from("user-saved-songs")
             .remove([filePath]);
@@ -54,4 +52,12 @@ async function deleteSong(filePath: string) {
     }
 }
 
-export {supabaseInitialize, uploadSong, deleteSong} 
+function getSongPublicURL(filePath: string): string {
+    const { data } = supabase.storage
+        .from("user-saved-songs")
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+}
+
+export {supabaseInitialize, uploadSong, deleteSong, getSongPublicURL} 

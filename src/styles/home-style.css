@@ -233,6 +233,7 @@ body:has(#drawer-btn:active) #top-drawer {
 
 #song-title {
     font-family: 'main-font';
+    text-align: center;
 }
 
 #artist-name {
@@ -248,11 +249,21 @@ body:has(#drawer-btn:active) #top-drawer {
 }
 
 #line-path {
-    width: 18%;
+    width: 0%;
     overflow: hidden;
 
     position: absolute;
     top: 0;
+}
+
+#line-input {
+    width: 100%;
+    position: absolute;
+    left: 0;
+
+    opacity: 0;
+
+    z-index: 99;
 }
 
 #current-time {
@@ -483,9 +494,66 @@ body:has(#drawer-btn:active) #top-drawer {
     height: 40px;
     width: 40px;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
     background-color: var(--primary-color);
 
     filter: url(#crayon);
+}
+
+
+.waving .track-item-line-1,
+.waving .track-item-line-2,
+.waving .track-item-line-3
+{
+    animation-play-state: running;
+}
+
+.track-item-line-1,.track-item-line-2, .track-item-line-3 {
+    height: 20px;
+    width: 2px;
+
+    background-color: var(--cream);
+    transform-origin: center;
+
+    animation: track-wave 700ms ease-in-out infinite alternate;
+    animation-play-state: paused;
+}
+
+.track-item-line-1 {
+    height: 16px;
+    animation-delay: -180ms;
+}
+
+.track-item-line-2 {
+    height: 19px;
+    animation-delay: -420ms;
+}
+
+.track-item-line-3 {
+    height: 11px;
+    animation-delay: -80ms;
+}
+
+@keyframes track-wave {
+    from {
+        transform: scaleY(0.35);
+    }
+
+    to {
+        transform: scaleY(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .track-item-line-1,
+    .track-item-line-2,
+    .track-item-line-3 {
+        animation: none;
+    }
 }
 
 .track-item-info-container {

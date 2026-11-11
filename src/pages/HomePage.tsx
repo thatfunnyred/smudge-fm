@@ -3,10 +3,10 @@ import "../styles/home-style.css";
 import Line from "../visuals/svgs/line";
 import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/controls";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { subscribe } from "../utils/events";
+import { publish, subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
 import { getUserSavedSongs } from "../utils/firebase";
-import { formatDuration } from "../utils/utils";
+import { fetchAudioFromLocalStorage, formatDuration } from "../utils/utils";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
@@ -17,7 +17,12 @@ export default function HomePage() {
     let trackListRef = useRef<HTMLDivElement>(null);
     let trackItemsRef = useRef<HTMLDivElement>(null);
 
-    const handlePlayPause = () => {
+    const [currentTrack, setCurrentTrack] = useState<any>();
+    const lastTrackId = useRef<string | null>(null);
+
+    const handlePlayPause = async () => {
+        if(!currentTrack || !audioRef.current) return;
+
         const newPlaying = !isPlaying;
         setIsPlaying(newPlaying);
 
@@ -26,18 +31,75 @@ export default function HomePage() {
 
         const musicDisc = document.getElementById("music-disc");
 
+        const base64Audio: any = await fetchAudioFromLocalStorage(currentTrack.id);
+
+        if (lastTrackId.current != currentTrack.id) {
+            audioRef.current.pause();
+
+            audioRef.current.src = base64Audio;
+            audioRef.current.load();
+
+            const previousTrackElement: any = document.getElementById(lastTrackId.current ?? "");
+            previousTrackElement?.classList.remove("waving");
+
+            lastTrackId.current = currentTrack.id;
+        }
+
+        const currentTrackElement: any = document.getElementById(currentTrack.id);
+
         if (newPlaying) {
             playBtn?.classList.add("hidden");
             pauseBtn?.classList.remove("hidden");
 
             musicDisc?.classList.add("spinning");
+
+            audioRef.current.play();
+            currentTrackElement?.classList.add("waving");
         }else{
             playBtn?.classList.remove("hidden");
             pauseBtn?.classList.add("hidden");
-
+            
             musicDisc?.classList.remove("spinning");
+
+            audioRef.current.pause();
+            currentTrackElement?.classList.remove("waving");
         }
+
+        return null;
     };
+
+    const restartPlayingAudio = async (newSongId: string) => {
+        if(!audioRef.current) return;
+
+        const track = getUserSavedSongs().find((track: any) => track.id == newSongId);
+        setCurrentTrack(track);
+
+        audioRef.current.pause();
+
+        const playBtn = document.getElementById("play-btn");
+        const pauseBtn = document.getElementById("pause-btn");
+        const musicDisc = document.getElementById("music-disc");
+
+        const base64Audio: any = await fetchAudioFromLocalStorage(newSongId);
+
+        if (lastTrackId.current != newSongId) {
+            audioRef.current.src = base64Audio;
+            audioRef.current.load();
+
+            const previousTrackElement: any = document.getElementById(lastTrackId.current ?? "");
+            previousTrackElement?.classList.remove("waving");
+
+            lastTrackId.current = newSongId;
+        }
+
+        const currentTrackElement: any = document.getElementById(newSongId);
+
+        playBtn?.classList.add("hidden");
+        pauseBtn?.classList.remove("hidden");
+        musicDisc?.classList.add("spinning");
+        audioRef.current.play();
+        currentTrackElement?.classList.add("waving");
+    }
 
     const handleLike = () => {
         isLiked = !isLiked;
@@ -46,26 +108,20 @@ export default function HomePage() {
         likeBtn?.classList.toggle("liked");
     };
 
-    const dt = useRef(0);
-
     useEffect(() => {
         const interval = setInterval(() => {
             if (!isPlaying) return;
 
-            dt.current += 0.1;
+            const dt: any = audioRef.current?.currentTime;
 
             const currentTime = document.getElementById("current-time");
             const linePath = document.getElementById("line-path");
 
             if (currentTime && linePath) {
-                const minutes = Math.floor(dt.current / 60);
-                const seconds = Math.floor(dt.current % 60);
-
-                currentTime.textContent =
-                    `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+                currentTime.textContent = formatDuration(dt);
 
                 linePath.style.width =
-                    `${(dt.current / 103) * 100}%`;
+                    `${(dt / (audioRef.current?.duration ?? 0)) * 100}%`;
             }
         }, 100);
 
@@ -144,8 +200,23 @@ export default function HomePage() {
     const [PLAYLISTS, SETPLAYLISTS] = useState<any[]>([]);
     
     useEffect(() => {
-        const assignPlaylists = (playlists: any[]) => {
-            SETPLAYLISTS([...playlists]);
+        const assignPlaylists = async (playlists: any[]) => {
+            const newPlaylists = [...playlists];
+            SETPLAYLISTS(newPlaylists);
+
+            const locallySelectedPlaylist = localStorage.getItem("selected-playlist");
+            let playlist = newPlaylists.find((pl: any) => locallySelectedPlaylist == pl.id);
+            playlist = playlist ? playlist : (newPlaylists.length > 0 ? newPlaylists[0] : null);
+
+            if(playlist) {
+                if(playlist.songIds.length >= 1) {
+                    const track: any = getUserSavedSongs().find((song: any) => song.id == playlist.songIds[0]);
+                    setCurrentTrack(track);
+                    if(isPlaying) restartPlayingAudio(track.id);
+                }
+                
+                setSelectedPlaylist(playlist);
+            }
         };
 
         const unsubscribe = subscribe(
@@ -154,7 +225,7 @@ export default function HomePage() {
         );
 
         return () => unsubscribe();
-    }, []);
+    }, [isPlaying]);
 
     const [playlistData, setPlaylistData] = useState<object | null>(null);
     const [playlistKey, setPlaylistKey] = useState<number>(0);
@@ -174,28 +245,91 @@ export default function HomePage() {
         if(previousSelectedPlaylist)
         {
             if(playlist.id == previousSelectedPlaylist.id) return;
-    
             const previousSelectedElement = document.getElementById(previousSelectedPlaylist.id);
             previousSelectedElement?.classList.toggle("selected-playlist");
         }
-
+        
         setSelectedPlaylist(playlist);
         const selectedElement = document.getElementById(playlist.id);
         selectedElement?.classList.toggle("selected-playlist");
-
+        
         localStorage.setItem("selected-playlist", playlist.id);
+        publish("onplaylistupdate", PLAYLISTS);
+    }
+
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const handleSongSelect = async (song: any) => {
+        if(!audioRef.current) return;
+
+        if(!currentTrack || currentTrack.id != song.id) setCurrentTrack(song);
+        
+        if(!isPlaying) handlePlayPause();
+
+        if(lastTrackId.current != song.id && isPlaying) {
+            restartPlayingAudio(song.id);
+        }
+    };
+
+    const handleSongEnd = () => {
+        const maxSongs = selectedPlaylist.songIds.length;
+
+        let randomSongId = currentTrack.id;
+        while(currentTrack.id == randomSongId) {
+            const randomInt = generateRandomNumber(0, maxSongs);
+
+            randomSongId = selectedPlaylist.songIds[randomInt];
+        }
+        
+        restartPlayingAudio(randomSongId);
+    }
+
+    const generateRandomNumber = (min: number, max: number) => {
+        return Math.floor(Math.random() * (max - min) + min);
     }
 
     useEffect(() => {
-        const locallySelectedPlaylist = localStorage.getItem("selected-playlist");
+        if(!currentTrack) return;
 
-        const playlist: any = PLAYLISTS.find((pl: any) => locallySelectedPlaylist === pl.id);
+        const songTitle = document.getElementById("song-title");
+        const songDuration = document.getElementById("total-time");
 
-        setSelectedPlaylist(playlist);
-    }, [PLAYLISTS]);
+        if(songTitle) songTitle.textContent = currentTrack.name.length > 20 ? currentTrack.name.slice(0, 20) + "..." : currentTrack.name;
+        if(songDuration) songDuration.textContent = formatDuration(currentTrack.duration);
+    }, [currentTrack]);
+
+    const handlePlaybackChange = (e: any) => {
+        if(!audioRef.current) return;
+
+        const currentValue = e.target.value / 100 * audioRef.current.duration;
+        
+        audioRef.current.currentTime = currentValue;
+
+        const currentTime = document.getElementById("current-time");
+        const linePath = document.getElementById("line-path");
+
+            if (currentTime && linePath) {
+                currentTime.textContent = formatDuration(currentValue);
+
+                linePath.style.width =
+                    `${(currentValue / (audioRef.current?.duration ?? 0)) * 100}%`;
+            }
+    }
+
+    const handleLineInput = (event: string) => {
+        switch (event) {
+            case "mouse-down":
+                if(isPlaying) audioRef.current?.pause();
+                break;
+            case "mouse-up":
+                if(isPlaying) audioRef.current?.play();
+                break;
+        }
+    }
 
     return (
         <div className="home-page">
+            <audio ref={audioRef} onEnded={handleSongEnd}></audio>
             
             {playlistData !== null && (
                 <Suspense fallback={null}>
@@ -240,13 +374,23 @@ export default function HomePage() {
             
             <MusicDisc/>
 
-            <h1 id="song-title">Some Song</h1>
-            <h3 id="artist-name">Some Artist</h3>
+            <h1 id="song-title">NAN</h1>
+            <h3 id="artist-name">Unkown Artist</h3>
 
             <Line>
+                <input 
+                    type="range" 
+                    id="line-input"
+                    min="0" 
+                    max="100"
+                    step="1"
+                    onChange={handlePlaybackChange}
+                    onPointerDown={() => handleLineInput("mouse-down")}
+                    onPointerUp={() => handleLineInput("mouse-up")}
+                    ></input>           
                 <p id="current-time">0:00</p>
                 <Line id="line-path" color="var(--track-color)"> </Line>
-                <p id="total-time">1:43</p>
+                <p id="total-time">0:00</p>
             </Line>
 
             <div id="song-controls">
@@ -277,22 +421,26 @@ export default function HomePage() {
                 <div id="track-items" ref={trackItemsRef}>
                     {selectedPlaylist && selectedPlaylist.songIds.map((songId: string) => {
                         const savedSongs = getUserSavedSongs();
-                        const track: any = savedSongs.find((song: any) => song.id === songId);
+                        const song: any = savedSongs.find((song: any) => song.id === songId);
 
-                        if (!track) return null;
+                        if (!song) return null;
 
                         return (
-                            <div className="track-item" key={songId}>
-                                <div className="track-item-cover"></div>
-
-                                <div className="track-item-info-container">
-                                    <h1 className="track-item-title">{track.name.length > 20
-                                        ? track.name.slice(0, 20) + "..."
-                                        : track.name}</h1>
-                                    <h3 className="track-item-artist">{track.artist || "Unknown Artist"}</h3>
+                            <div className="track-item" id={songId} key={songId} onClick={() => handleSongSelect(song)}>
+                                <div className="track-item-cover">
+                                    <div className="track-item-line-1"></div>
+                                    <div className="track-item-line-2"></div>
+                                    <div className="track-item-line-3"></div>
                                 </div>
 
-                                <p className="track-item-length">{formatDuration(track.duration)}</p>
+                                <div className="track-item-info-container">
+                                    <h1 className="track-item-title">{song.name.length > 20
+                                        ? song.name.slice(0, 20) + "..."
+                                        : song.name}</h1>
+                                    <h3 className="track-item-artist">{song.artist || "Unknown Artist"}</h3>
+                                </div>
+
+                                <p className="track-item-length">{formatDuration(song.duration)}</p>
                             </div>
                         );
                     })}

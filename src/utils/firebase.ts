@@ -3,7 +3,8 @@ import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getD
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { publish } from "./events";
-import { deleteSong, uploadSong } from "./supabase";
+import { deleteSong, getSongPublicURL, uploadSong } from "./supabase";
+import { AudioExistsInLocalStorage, deleteAudioFromLocalStorage, saveAudioToLocalStorage } from "./utils";
 
 // firebase setup
 const firebaseConfig = {
@@ -394,6 +395,8 @@ async function updateUserSongs(process: string, song: any) {
             savedSongs = savedSongs.filter(
                 (s: any) => s.id !== song.id
             );
+
+            deleteAudioFromLocalStorage(song.id);
             break;
         case "update":
             // reference to songs doc
@@ -405,6 +408,13 @@ async function updateUserSongs(process: string, song: any) {
                 id: doc.id,
                 ...doc.data()
             }));
+
+            savedSongs.forEach(async (s: any) => {
+                if(await AudioExistsInLocalStorage(s.id)) return;
+
+                const PUBLIC_SONG_URL: any = getSongPublicURL(s.storagePath);
+                saveAudioToLocalStorage(PUBLIC_SONG_URL, s.id);
+            });
             break;
         case "add":
             const songRef = doc(collection(db, "users", user.uid, "savedSongs"));
@@ -437,11 +447,14 @@ async function updateUserSongs(process: string, song: any) {
                     ...addedSong
                 }
             ];
+
+            const PUBLIC_SONG_URL: any = getSongPublicURL(songPath);
+            saveAudioToLocalStorage(PUBLIC_SONG_URL, songId);
             
             return songId;
     }
 
-    publish("onsongupdate", [...savedSongs]);
+    publish("onplaylistupdate", [...playlists]);
 
     return true;
 }
