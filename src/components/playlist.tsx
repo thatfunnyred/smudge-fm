@@ -3,6 +3,7 @@ import "../styles/playlist-style.css"
 import { addSongToPlaylist, editPlaylistName, getUserSavedSongs, removePlaylist, removeSongFromPlaylist } from "../utils/firebase";
 import { formatDuration, removeExtension } from "../utils/utils";
 import ConfirmMenuPopUp from "./confirmmenu";
+import { loader } from "./MusicLoader";
 
 export interface PlaylistProps {
     playlistData?: any
@@ -22,23 +23,27 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
         setConfirmMenu({
             title: `DELETE '${playlistData.name}'?`,
             context: "This deletes it from your library. It won’t be saved anywhere, and this can’t be undone.",
-            onConfirm: () => {
-                removePlaylist(playlistKey);
+            onConfirm: async () => {
+                await removePlaylist(playlistKey);
                 onClose();
-            }
+            },
+            confirmBtn: "DELETE",
+            cancelBtn: "KEEP IT"
         })
     };
 
-    const handlePlaylistSave = () => {
+    const handlePlaylistSave = async () => {
         const playlistNameInput = document.getElementById("playlist-name-input") as HTMLInputElement;
         const playlistNameValue = playlistNameInput.value;
+        loader.show();
         
         if(playlistNameValue != "") {
             playlistData.name = playlistNameValue;
             
-            editPlaylistName(playlistData);
+            await editPlaylistName(playlistData);
         }
-
+        
+        loader.hide();
         onClose();
     }
 
@@ -55,12 +60,16 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
             const objectUrl = URL.createObjectURL(songFile);
             const audio = new Audio(objectUrl);
 
-            audio.addEventListener('loadedmetadata', function() {
+            audio.addEventListener('loadedmetadata', async function() {
             durationInSeconds = Math.floor(audio.duration);
 
             const songData = {name: fileName, duration: durationInSeconds, file: songFile}
+            
+            loader.show();
+            
+            await addSongToPlaylist(playlistData, songData);
 
-            addSongToPlaylist(playlistData, songData);
+            loader.hide();
             
             URL.revokeObjectURL(objectUrl);
             });
@@ -71,7 +80,9 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
         setConfirmMenu({
             title: `DELETE '${song.name}'?`,
             context: "This deletes it from your library. It won’t be saved anywhere, and this can’t be undone.",
-            onConfirm: () => removeSongFromPlaylist(playlistData, song)
+            onConfirm: () => removeSongFromPlaylist(playlistData, song),
+            confirmBtn: "DELETE",
+            cancelBtn: "KEEP IT"
         });
     }
 
@@ -80,7 +91,7 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
 
             {confirmMenu && (
                 <Suspense fallback={null}>
-                    <ConfirmMenuPopUp deleteTitle={confirmMenu.title} deleteContext={confirmMenu.context} onConfirm={confirmMenu.onConfirm} onClose={() => setConfirmMenu(null)} />
+                    <ConfirmMenuPopUp deleteTitle={confirmMenu.title} deleteContext={confirmMenu.context} confirmBtn={confirmMenu.confirmBtn} cancelBtn={confirmMenu.cancelBtn}  onConfirm={confirmMenu.onConfirm} onClose={() => setConfirmMenu(null)} />
                 </Suspense>
             )}
 

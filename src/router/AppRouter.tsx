@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { subscribe } from "../utils/events";
+import { LoaderHost } from "../components/MusicLoader.tsx";
 
 const HomePage = lazy(() => import("../pages/HomePage.tsx"));
 const SignInPopUp = lazy(() => import("../components/SignIn.tsx"));
@@ -22,6 +23,8 @@ export default function AppRouter() {
 
   return (
     <>
+      <LoaderHost />
+
       <Suspense
         fallback={
           <div className="route-loading" role="status">

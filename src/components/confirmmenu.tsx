@@ -1,20 +1,28 @@
 import "../styles/confirm-menu-style.css"
+import { loader } from "./MusicLoader";
 export interface ConfirmMenuProps {
     deleteTitle?: string,
     deleteContext?: string,
+    confirmBtn?: string,
+    cancelBtn?: string,
     onConfirm?: any,
     onClose?: any
 }
 
-export default function ConfirmMenuPopUp({deleteTitle = "", deleteContext = "", onConfirm, onClose} : ConfirmMenuProps) {
+export default function ConfirmMenuPopUp({deleteTitle = "", deleteContext = "", confirmBtn = "", cancelBtn = "", onConfirm, onClose} : ConfirmMenuProps) {
 
-    const onConfirmDelete = () => {
-        onConfirm();
-        onClose();
+    const onConfirmDelete = async () => {
+
+        loader.show();
+
+        await onConfirm();
+        await onClose();
+        
+        loader.hide();
     }
 
     return (
-        <div id="background-blur">
+        <div id="confirm-background-blur">
             <div id="confirm-menu-container">
                 <div id="delete-warning-icon">!</div>
 
@@ -24,8 +32,8 @@ export default function ConfirmMenuPopUp({deleteTitle = "", deleteContext = "", 
                 <p id="delete-warning-context">{deleteContext}</p>
 
                 <div id="confirm-menu-btn-container">
-                    <button id="confirm-menu-keep-btn" onClick={onClose}>KEEP IT</button>
-                    <button id="confirm-menu-confirm-btn" onClick={onConfirmDelete}>DELETE</button>
+                    <button id="confirm-menu-keep-btn" onClick={onClose}>{cancelBtn}</button>
+                    <button id="confirm-menu-confirm-btn" onClick={onConfirmDelete}>{confirmBtn}</button>
                 </div>
             </div>
         </div>

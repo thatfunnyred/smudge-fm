@@ -1,5 +1,6 @@
 import "../styles/add-playlist-style.css"
 import { addPlaylist } from "../utils/firebase";
+import { loader } from "./MusicLoader";
 
 export interface AddPlaylistProps {
     onClose?: any
@@ -7,7 +8,7 @@ export interface AddPlaylistProps {
 
 export default function AddPlaylistPopUp({onClose} : AddPlaylistProps) {
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const playlistNameInput = document.getElementById("add-playlist-name-input") as HTMLInputElement;
 
         if(!playlistNameInput) return;
@@ -15,8 +16,12 @@ export default function AddPlaylistPopUp({onClose} : AddPlaylistProps) {
         const playlistName = playlistNameInput.value;
         
         if(playlistNameInput.value == "") return;
+        
+        loader.show();
 
-        addPlaylist(playlistName);
+        await addPlaylist(playlistName);
+        
+        loader.hide();
 
         onClose();
     };

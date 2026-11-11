@@ -5,22 +5,25 @@ import { Like, Mode, Next, Pause, Play, Previous } from "../visuals/svgs/control
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { publish, subscribe } from "../utils/events";
 import AddPlaylistPopUp from "../components/addplaylist";
-import { addLikedSong, getUserLikedSongs, getUserSavedSongs, removeLikedSong } from "../utils/firebase";
+import { addLikedSong, getUserLikedSongs, getUserSavedSongs, logout, removeLikedSong } from "../utils/firebase";
 import { fetchAudioFromLocalStorage, formatDuration } from "../utils/utils";
+import ConfirmMenuPopUp from "../components/confirmmenu";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
 export default function HomePage() {
-
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     let trackListRef = useRef<HTMLDivElement>(null);
     let trackItemsRef = useRef<HTMLDivElement>(null);
 
     const [currentTrack, setCurrentTrack] = useState<any>();
+    const [optionMenuOpen, setOptionMenuOpen] = useState<boolean>();
     const lastTrackId = useRef<string | null>(null);
 
-    const handlePlayPause = async () => {
+    const handlePlayPause = async (song: any = null) => {
         if(!currentTrack || !audioRef.current) return;
+
+        const track = song != null ? song : currentTrack;
 
         const newPlaying = !isPlaying;
         setIsPlaying(newPlaying);
@@ -30,9 +33,9 @@ export default function HomePage() {
 
         const musicDisc = document.getElementById("music-disc");
 
-        const base64Audio: any = await fetchAudioFromLocalStorage(currentTrack.id);
+        const base64Audio: any = await fetchAudioFromLocalStorage(track.id);
 
-        if (lastTrackId.current != currentTrack.id) {
+        if (lastTrackId.current != track.id) {
             audioRef.current.pause();
 
             audioRef.current.src = base64Audio;
@@ -41,10 +44,10 @@ export default function HomePage() {
             const previousTrackElement: any = document.getElementById(lastTrackId.current ?? "");
             previousTrackElement?.classList.remove("waving");
 
-            lastTrackId.current = currentTrack.id;
+            lastTrackId.current = track.id;
         }
 
-        const currentTrackElement: any = document.getElementById(currentTrack.id);
+        const currentTrackElement: any = document.getElementById(track.id);
 
         if (newPlaying) {
             playBtn?.classList.add("hidden");
@@ -218,6 +221,9 @@ export default function HomePage() {
                     const track: any = getUserSavedSongs().find((song: any) => song.id == playlist.songIds[0]);
                     setCurrentTrack(track);
                     if(isPlaying) restartPlayingAudio(track.id);
+                }else{
+                    setCurrentTrack(null);
+                    if(isPlaying) handlePlayPause();
                 }
                 
                 setSelectedPlaylist(playlist);
@@ -269,7 +275,7 @@ export default function HomePage() {
 
         if(!currentTrack || currentTrack.id != song.id) setCurrentTrack(song);
         
-        if(!isPlaying) handlePlayPause();
+        if(!isPlaying) handlePlayPause(song);
 
         if(lastTrackId.current != song.id && isPlaying) {
             restartPlayingAudio(song.id);
@@ -294,21 +300,20 @@ export default function HomePage() {
     }
 
     useEffect(() => {
-        if(!currentTrack) return;
-
         const songTitle = document.getElementById("song-title");
         const songDuration = document.getElementById("total-time");
         const likeBtn = document.getElementById("like-btn");
 
-        if(songTitle) songTitle.textContent = currentTrack.name.length > 20 ? currentTrack.name.slice(0, 20) + "..." : currentTrack.name;
-        if(songDuration) songDuration.textContent = formatDuration(currentTrack.duration);
+        if(songTitle) songTitle.textContent = currentTrack ? (currentTrack.name.length > 20 ? currentTrack.name.slice(0, 20) + "..." : currentTrack.name) : "NAN";
+        if(songDuration) songDuration.textContent = formatDuration(currentTrack ? currentTrack.duration : 0);
 
-        const liked = getUserLikedSongs().includes(currentTrack.id);
+        const liked = getUserLikedSongs().includes(currentTrack ? currentTrack.id : "");
         if(liked) {
             likeBtn?.classList.add("liked");
         }else{
             likeBtn?.classList.remove("liked");
         }
+
     }, [currentTrack]);
 
     const handlePlaybackChange = (e: any) => {
@@ -340,8 +345,28 @@ export default function HomePage() {
         }
     }
 
+    const [confirmMenu, setConfirmMenu] = useState<any>();
+    const handleLogOut = () => {
+        setConfirmMenu({
+            title: "LOG OUT?",
+            context: "Are you sure you want to log out of your account?",
+            onConfirm: async () => {
+                await logout();
+                setOptionMenuOpen(false);
+            },
+            confirmBtn: "LOGOUT",
+            cancelBtn: "STAY"
+        });
+    }
+
     return (
         <div className="home-page">
+            {confirmMenu && (
+                <Suspense fallback={null}>
+                    <ConfirmMenuPopUp deleteTitle={confirmMenu.title} deleteContext={confirmMenu.context} confirmBtn={confirmMenu.confirmBtn} cancelBtn={confirmMenu.cancelBtn} onConfirm={confirmMenu.onConfirm} onClose={() => setConfirmMenu(null)} />
+                </Suspense>
+            )}
+
             <audio ref={audioRef} onEnded={handleSongEnd}></audio>
             
             {playlistData !== null && (
@@ -382,8 +407,15 @@ export default function HomePage() {
 
                 <h1 id="drawer-btn" onClick={handleTopDrawer} style={{top: `${drawerOpen ? "250px" : "0px"}`}}>{drawerOpen ? "<" : ">"}</h1>
                 <h1 id="title-btn">Smudge FM</h1>
-                <h1 id="info-btn">...</h1>
+                <h1 id="info-btn" onClick={() => setOptionMenuOpen(true)}>...</h1>
             </div>
+
+            {optionMenuOpen && (<div id="options-container">
+                <button id="options-close-btn" onClick={() => setOptionMenuOpen(false)}>X</button>
+                <div id="profile-btn">PROFILE</div>
+                <div id="settings-btn">SETTINGS</div>
+                <div id="logout-btn" onClick={handleLogOut}>LOGOUT</div>
+            </div>)}
             
             <MusicDisc/>
 
@@ -409,8 +441,8 @@ export default function HomePage() {
             <div id="song-controls">
                 <Mode OnClick={handleMode} />
                 <Previous />
-                <Play OnClick={handlePlayPause} />
-                <Pause className="hidden pause-btn" OnClick={handlePlayPause} />
+                <Play OnClick={() => handlePlayPause()} />
+                <Pause className="hidden pause-btn" OnClick={() => handlePlayPause()} />
                 <Next />
                 <Like OnClick={handleLike} />
             </div>

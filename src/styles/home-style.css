@@ -21,7 +21,7 @@
 
     border-bottom: 4px solid var(--ink);
     background-color: var(--cream);
-    transition: top 0.7s ease;
+    transition: top 0.7s ease-out;
 
     filter: url(#crayon);
 
@@ -201,13 +201,75 @@ body:has(#drawer-btn:active) #top-drawer {
     transform: rotate(90deg) scaleY(1.6);
 
     transition: transform 0.2s ease;
-    transition: top 0.7s ease;
+    transition: top 0.7s ease-out;
 
     z-index: 999;
 }
 
 #drawer-btn:active {
     transform: translateY(4px) rotate(90deg) scaleY(1.6);
+}
+
+#options-container {
+    height: 140px;
+    width: 200px;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+
+    margin: 12px;
+
+    filter: url(#crayon);
+    background-color: var(--cream);
+    border: 2px dashed var(--ink);
+
+    z-index: 9;
+}
+
+#options-close-btn {
+    height: 42px;
+    aspect-ratio: 1 / 1;
+
+    position: absolute;
+    top: -12px;
+    right: -12px;
+
+    font-family: "main-font";
+    font-size: 28px;
+    margin: 12px;
+
+    background-color: var(--cream);
+    border: none;
+}
+
+#options-close-btn:active {
+    background-color: var(--accent-color);
+}
+
+#options-container div {
+    font-size: 20px;
+    font-family: "main-font";
+
+    padding: 11px;
+    margin: 0;
+}
+
+#profile-btn, #settings-btn {
+    border-bottom: 3px solid var(--ink);
+}
+
+#profile-btn:active, #settings-btn:active {
+    background-color: var(--accent-color);
+}
+
+#logout-btn:active {
+    background-color: var(--secondary-color);
+    color: var(--cream);
 }
 
 #music-disc {

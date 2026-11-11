@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "../styles/signin-style.css";
 import { signUpWithPassword, signInWithPassword, signInWithGoogle } from "../utils/firebase";
+import { loader } from "./MusicLoader";
 
 export default function SignInPopUp() {
 
@@ -21,9 +22,13 @@ export default function SignInPopUp() {
     const handleSubmit = async () => {
         const email: string = (document.getElementById("email-input") as HTMLInputElement).value;
         const password: string = (document.getElementById("password-input") as HTMLInputElement).value;
+        
+        loader.show();
 
         if(currentWindow == "signup") await signUpWithPassword(email, password);
         if(currentWindow == "signin") await signInWithPassword(email, password);
+
+        loader.hide();
     };
 
     const handleGoogleSignIn = () => {

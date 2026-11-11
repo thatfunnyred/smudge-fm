@@ -1,10 +1,11 @@
-import { onAuthStateChanged, setPersistence, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence } from "firebase/auth";
+import { onAuthStateChanged, setPersistence, signInWithEmailAndPassword, getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp, collection, deleteDoc, getDocs, getDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { publish } from "./events";
 import { deleteSong, getSongPublicURL, uploadSong } from "./supabase";
 import { AudioExistsInLocalStorage, deleteAudioFromLocalStorage, saveAudioToLocalStorage } from "./utils";
+import { loader } from "../components/MusicLoader";
 
 // firebase setup
 const firebaseConfig = {
@@ -57,6 +58,8 @@ function init() {
         // keep login persistent
         setPersistence(auth, browserLocalPersistence);
 
+        loader.show();
+
         // add onsignin and onsignout as events
         onAuthStateChanged(auth, (u) => {
             user = u;
@@ -74,11 +77,17 @@ function init() {
                 resolve(false);
             }
 
+            loader.hide();
+
+            playlists = JSON.parse(localStorage.getItem("playlists") ?? "");
+            savedSongs = JSON.parse(localStorage.getItem("savedSongs") ?? "");
+            likedSongs = JSON.parse(localStorage.getItem("likedSongs") ?? "");
+
             // update all stored variables
             updateUserData();
             updateUserPlaylists("update", null);
             updateUserSongs("update", null);
-            updateUserLikedSongs("update", null)
+            updateUserLikedSongs("update", null);
         });
     });
 }
@@ -152,6 +161,16 @@ async function signInWithGoogle() {
         
         return error.code;
     }
+}
+
+async function logout() {
+    signOut(auth)
+        .then(() => {
+            return true;
+        })
+        .catch((error) => {
+           return error;
+        });
 }
 
 // func to check if the user is signed in
@@ -345,7 +364,6 @@ async function updateUserPlaylists(process: string, playlist: any) {
             await setDoc(uniqueAddSongPlaylistRef, {
                 songIds: AddingSongIds
             }, { merge: true });
-
             break;
         case "remove-song":
             // reference to playlist doc
@@ -381,6 +399,7 @@ async function updateUserPlaylists(process: string, playlist: any) {
             break;
     }
 
+    localStorage.setItem("playlists", JSON.stringify(playlists));
     publish("onplaylistupdate", [...playlists]);
 
     return true;
@@ -467,7 +486,8 @@ async function updateUserSongs(process: string, song: any) {
             
             return songId;
     }
-
+        
+    localStorage.setItem("savedSongs", JSON.stringify(savedSongs));
     publish("onplaylistupdate", [...playlists]);
 
     return true;
@@ -519,6 +539,8 @@ async function updateUserLikedSongs(process: string, song?: any) {
         }
     }
 
+    localStorage.setItem("likedSongs", JSON.stringify(likedSongs));
+
     return true;
 }
 
@@ -529,6 +551,7 @@ export {
     signUpWithPassword, 
     signInWithPassword, 
     signInWithGoogle, 
+    logout,
     isSignedIn, 
     getUserData, 
     getUserPlaylists, 
