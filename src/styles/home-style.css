@@ -185,6 +185,11 @@ body:has(#drawer-btn:active) #top-drawer {
     filter: url(#crayon);
 }
 
+#title-btn {
+    position: absolute;
+    scale: 0.4;
+}
+
 #drawer-btn {
     height: 40px;
     width: 60px;

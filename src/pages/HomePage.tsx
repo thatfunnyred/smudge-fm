@@ -8,6 +8,7 @@ import AddPlaylistPopUp from "../components/addplaylist";
 import { addLikedSong, getUserLikedSongs, getUserSavedSongs, logout, removeLikedSong } from "../utils/firebase";
 import { fetchAudioFromLocalStorage, formatDuration } from "../utils/utils";
 import ConfirmMenuPopUp from "../components/confirmmenu";
+import { Link, NavLink } from "react-router-dom";
 
 const PlaylistPopUp = lazy(() => import("../components/playlist"));
 
@@ -406,7 +407,9 @@ export default function HomePage() {
                 </div>
 
                 <h1 id="drawer-btn" onClick={handleTopDrawer} style={{top: `${drawerOpen ? "250px" : "0px"}`}}>{drawerOpen ? "<" : ">"}</h1>
-                <h1 id="title-btn">Smudge FM</h1>
+                <NavLink id="title-btn" to={"/"}>
+                    <img src="logo/smudge-fm-logo.svg" alt="Smudge FM" className="site-logo" />
+                </NavLink>
                 <h1 id="info-btn" onClick={() => setOptionMenuOpen(true)}>...</h1>
             </div>
 
