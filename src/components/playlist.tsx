@@ -97,7 +97,7 @@ export default function PlaylistPopUp({playlistData, playlistKey, onClose} : Pla
 
             <div id="playlist-container">
                 <h1 id="playlist-title">EDIT PLAYLIST</h1>
-                <h1 id="playlist-sub-title">{playlistData.songIds.length + " songs ·"}</h1>
+                <h1 id="playlist-sub-title">{playlistData.songIds.length + " songs · " + formatDuration(playlistData.duration)}</h1>
                 <button id="playlist-close-btn" onClick={onClose}>X</button>
 
                 <div id="playlist-input-field">

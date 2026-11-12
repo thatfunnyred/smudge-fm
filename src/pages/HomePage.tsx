@@ -68,13 +68,41 @@ export default function HomePage() {
             currentTrackElement?.classList.remove("waving");
         }
 
+        if (!("mediaSession" in navigator)) return;
+
+        if (!currentTrack) {
+            navigator.mediaSession.metadata = null;
+            return;
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.name,
+            artist: track.artist || "Unknown Artist",
+        });
+
+        navigator.mediaSession.setActionHandler("play", handleMediaPlay);
+
+        navigator.mediaSession.setActionHandler("pause", handleMediaPause);
+
+        navigator.mediaSession.playbackState = newPlaying ? "playing" : "paused";
+
         return null;
+    };
+
+    const handleMediaPlay = () => {
+        audioRef.current?.play();
+        setIsPlaying(true);
+    };
+
+    const handleMediaPause = () => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
     };
 
     const restartPlayingAudio = async (newSongId: string) => {
         if(!audioRef.current) return;
 
-        const track = getUserSavedSongs().find((track: any) => track.id == newSongId);
+        const track: any = getUserSavedSongs().find((track: any) => track.id == newSongId);
         setCurrentTrack(track);
 
         audioRef.current.pause();
@@ -102,6 +130,24 @@ export default function HomePage() {
         musicDisc?.classList.add("spinning");
         audioRef.current.play();
         currentTrackElement?.classList.add("waving");
+
+        if (!("mediaSession" in navigator)) return;
+
+        if (!track) {
+            navigator.mediaSession.metadata = null;
+            return;
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.name,
+            artist: track.artist || "Unknown Artist",
+        });
+
+        navigator.mediaSession.setActionHandler("play", handleMediaPlay);
+
+        navigator.mediaSession.setActionHandler("pause", handleMediaPause);
+
+        navigator.mediaSession.playbackState = "playing";
     }
 
     const handleLike = () => {
@@ -219,9 +265,12 @@ export default function HomePage() {
 
             if(playlist) {
                 if(playlist.songIds.length >= 1) {
-                    const track: any = getUserSavedSongs().find((song: any) => song.id == playlist.songIds[0]);
-                    setCurrentTrack(track);
-                    if(isPlaying) restartPlayingAudio(track.id);
+                    if(!currentTrack || !playlist.songIds.find((songId: any) => songId == currentTrack.id))
+                    {
+                        const track: any = getUserSavedSongs().find((song: any) => song.id == playlist.songIds[0]);
+                        setCurrentTrack(track);
+                        if(isPlaying) restartPlayingAudio(track.id);
+                    }
                 }else{
                     setCurrentTrack(null);
                     if(isPlaying) handlePlayPause();
@@ -264,7 +313,7 @@ export default function HomePage() {
         setSelectedPlaylist(playlist);
         const selectedElement = document.getElementById(playlist.id);
         selectedElement?.classList.toggle("selected-playlist");
-        
+
         localStorage.setItem("selected-playlist", playlist.id);
         publish("onplaylistupdate", PLAYLISTS);
     }
@@ -287,7 +336,7 @@ export default function HomePage() {
         const maxSongs = selectedPlaylist.songIds.length;
 
         let randomSongId = currentTrack.id;
-        while(currentTrack.id == randomSongId) {
+        while(currentTrack.id == randomSongId && selectedPlaylist.songIds.length > 1) {
             const randomInt = generateRandomNumber(0, maxSongs);
 
             randomSongId = selectedPlaylist.songIds[randomInt];
@@ -305,16 +354,29 @@ export default function HomePage() {
         const songDuration = document.getElementById("total-time");
         const likeBtn = document.getElementById("like-btn");
 
-        if(songTitle) songTitle.textContent = currentTrack ? (currentTrack.name.length > 20 ? currentTrack.name.slice(0, 20) + "..." : currentTrack.name) : "NAN";
-        if(songDuration) songDuration.textContent = formatDuration(currentTrack ? currentTrack.duration : 0);
-
-        const liked = getUserLikedSongs().includes(currentTrack ? currentTrack.id : "");
-        if(liked) {
-            likeBtn?.classList.add("liked");
-        }else{
-            likeBtn?.classList.remove("liked");
+        if (songTitle) {
+            songTitle.textContent = currentTrack
+                ? currentTrack.name.length > 20
+                    ? currentTrack.name.slice(0, 20) + "..."
+                    : currentTrack.name
+                : "NAN";
         }
 
+        if (songDuration) {
+            songDuration.textContent = formatDuration(
+                currentTrack ? currentTrack.duration : 0
+            );
+        }
+
+        const liked = getUserLikedSongs().includes(
+            currentTrack ? currentTrack.id : ""
+        );
+
+        if (liked) {
+            likeBtn?.classList.add("liked");
+        } else {
+            likeBtn?.classList.remove("liked");
+        }
     }, [currentTrack]);
 
     const handlePlaybackChange = (e: any) => {

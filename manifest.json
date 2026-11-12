@@ -1,0 +1,10 @@
+{
+    "name": "Smudge FM",
+    "short_name": "Smudge FM",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffdf26",
+    "theme_color": "#ffdf26"
+}

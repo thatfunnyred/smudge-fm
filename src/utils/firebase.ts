@@ -353,20 +353,23 @@ async function updateUserPlaylists(process: string, playlist: any) {
 
             const songId = await updateUserSongs("add", playlist.song);
             
-            
             // retrieve song Ids from playlist
-            let AddingSongIds: any;
+            let AddingSongId: any;
+            let totalDurationAdd: any;
             for(let i = 0; i < playlists.length; i++) {
                 if(playlists[i].id == playlist.id)
                 {
                     playlists[i].songIds.push(songId);
-                    AddingSongIds = playlists[i].songIds;
+                    AddingSongId = playlists[i].songIds;
+                    playlists[i].duration += playlist.song.duration;
+                    totalDurationAdd = playlists[i].duration;
                 }
             }
 
             // update song ids in firestore
             await setDoc(uniqueAddSongPlaylistRef, {
-                songIds: AddingSongIds
+                songIds: AddingSongId,
+                duration: totalDurationAdd
             }, { merge: true });
             break;
         case "remove-song":
@@ -374,18 +377,22 @@ async function updateUserPlaylists(process: string, playlist: any) {
             const uniqueRemoveSongPlaylistRef = doc(db, "users", user.uid, "playlists", playlist.id);
             
             // retrieve song Ids from playlist
-            let removingSongIds: any;
+            let removingSongId: any;
+            let totalDurationSubtract: any;
             for(let i = 0; i < playlists.length; i++) {
                 if(playlists[i].id == playlist.id)
                 {
                     playlists[i].songIds = playlists[i].songIds.filter((s: string) => s != playlist.song.id);
-                    removingSongIds = playlists[i].songIds;
+                    removingSongId = playlists[i].songIds;
+                    playlists[i].duration -= playlist.song.duration;
+                    totalDurationSubtract = playlists[i].duration;
                 }
             }
 
             // update song ids in firestore
             await setDoc(uniqueRemoveSongPlaylistRef, {
-                songIds: removingSongIds
+                songIds: removingSongId,
+                duration: totalDurationSubtract
             }, { merge: true });
 
             updateUserSongs("remove", playlist.song);
